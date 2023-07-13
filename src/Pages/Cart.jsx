@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer, toast } from 'react-toastify'
 import Swal from 'sweetalert2'
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   let { cart_items } = useSelector(store => store.cartStore)
@@ -26,7 +27,7 @@ const Cart = () => {
 
   const decreaseQuantity = item => e => {
     e.preventDefault()
-    let new_quantity = --item.quantity
+    let new_quantity = item.quantity - 1
     if(new_quantity <= 0){
       Swal.fire({
         title: "Warning",
@@ -52,7 +53,7 @@ const Cart = () => {
 
   const increaseQuantity = item => e => {
     e.preventDefault()
-    let new_quantity = ++item.quantity
+    let new_quantity = item.quantity + 1
     if(new_quantity > item.stock){
       Swal.fire("warning", "The item has limited stock")
 
@@ -62,15 +63,26 @@ const Cart = () => {
       dispatch({type:"UPDATE_ITEM", payload:updated_item})
       toast.warning("Quantity has been increased")
     }
+
     
     // if(new_quantity )
   }
+  let navigate = useNavigate()
+  const handleCheckout = e =>{
+    e.preventDefault()
+    let individual_totals = cart_items.map(item=>item.price * item.quantity)
+    let totalPrice = individual_totals.reduce((a, c)=>a+c)
+    sessionStorage.setItem('total_price', totalPrice)
+    return navigate('/checkout')
+  }
+
   return (
     <>
 
 <ToastContainer position='top-right' theme='colored'/>
       <h4 className="text-center">Cart Items</h4>
-
+    {cart_items.length > 0 ?
+      <>
       <table className="table w-75 text-center table-bordered table-hover table-striped mx-auto align-middle">
         <thead className='table-dark'>
           <td>S.NO</td>
@@ -107,6 +119,7 @@ const Cart = () => {
                   <i className='bi bi-trash' ></i>
                 </button>
               </td>
+              
 
             </tr>
 
@@ -116,6 +129,11 @@ const Cart = () => {
 
         </tbody>
       </table>
+        <button className='btn btn-warning' onClick={handleCheckout}>Proceed to Checkout</button>
+     </>
+      :
+      <div className="alert alert-danger text-center p-5 my-5 h2 w-75 mx-auto">No items in the cart</div>
+  }
     </>
   )
 }
